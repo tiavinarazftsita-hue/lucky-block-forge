@@ -1,0 +1,26 @@
+name: Build
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+      - name: Assembler et compiler
+        run: |
+          mkdir work tmp
+          unzip -q *mdk*.zip -d work
+          unzip -q lucky*.zip -d tmp
+          DIR="$(dirname "$(find work -name gradlew | head -n 1)")"
+          rm -rf "$DIR/src"
+          cp -r tmp/src "$DIR/src"
+          cd "$DIR"
+          chmod +x gradlew
+          ./gradlew build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mod-jar
+          path: work/**/build/libs/*.jar
